@@ -769,3 +769,855 @@ test "GraphemeView: grapheme_indices cluster content" {
     ),
   )
 }
+
+// ============================================================
+// T. Broken/special Unicode code point tests
+// ============================================================
+
+///|
+test "graphemes: replacement character U+FFFD" {
+  let g = graphemes("\u{FFFD}")
+  inspect(g.length(), content="1")
+  inspect(g[0].to_string(), content="\u{FFFD}")
+}
+
+///|
+test "graphemes: multiple replacement characters" {
+  let g = graphemes("\u{FFFD}\u{FFFD}\u{FFFD}")
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: BOM U+FEFF is Control, breaks cluster" {
+  // BOM (GCB=Control) should be its own cluster and break from text
+  let g = graphemes("\u{FEFF}text")
+  inspect(g.length(), content="5") // BOM + t + e + x + t
+  inspect(g[0].to_string(), content="\u{FEFF}")
+}
+
+///|
+test "graphemes: BOM between text" {
+  let g = graphemes("A\u{FEFF}B")
+  // Control breaks both sides (GB4+GB5): A | BOM | B
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: private use area U+E000" {
+  let g = graphemes("\u{E000}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: private use area with combining mark" {
+  // PUA char + combining acute accent = 1 cluster (GB9: × Extend)
+  let g = graphemes("\u{E000}\u{0301}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: noncharacter U+FFFF" {
+  let g = graphemes("\u{FFFF}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: noncharacter U+FDD0" {
+  let g = graphemes("\u{FDD0}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: noncharacter U+FDEF" {
+  let g = graphemes("\u{FDEF}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: noncharacter U+1FFFE" {
+  let g = graphemes("\u{1FFFE}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: mixed special codepoints" {
+  // FFFD (Other) + FEFF (Control) + E000 (Other) + FFFF (Other)
+  // = FFFD | FEFF | E000 | FFFF (Control breaks both sides)
+  let g = graphemes("\u{FFFD}\u{FEFF}\u{E000}\u{FFFF}")
+  inspect(g.length(), content="4")
+}
+
+// ============================================================
+// U. grapheme_indices() edge case tests
+// ============================================================
+
+///|
+test "grapheme_indices: single character" {
+  let g = graphemes("X")
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  inspect(offsets, content="[(0, 1)]")
+}
+
+///|
+test "grapheme_indices: combining character cluster" {
+  // 'a' + combining acute = 1 cluster spanning 2 code units
+  let g = graphemes("a\u{0301}")
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  inspect(offsets, content="[(0, 2)]")
+}
+
+///|
+test "grapheme_indices: CRLF cluster" {
+  let g = graphemes("\r\n")
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  inspect(offsets, content="[(0, 2)]")
+}
+
+///|
+test "grapheme_indices: sliced single element" {
+  let g = graphemes("ABCDE")[2:3]
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  // Offset refers to position in original string
+  inspect(offsets, content="[(2, 3)]")
+}
+
+// ============================================================
+// V. iter2() boundary tests
+// ============================================================
+
+///|
+test "iter2: empty" {
+  let g = graphemes("")
+  let indices : Array[Int] = []
+  for i, _cluster in g.iter2() {
+    indices.push(i)
+  }
+  inspect(indices, content="[]")
+}
+
+///|
+test "iter2: single element" {
+  let g = graphemes("Z")
+  let indices : Array[Int] = []
+  let values : Array[String] = []
+  for i, cluster in g.iter2() {
+    indices.push(i)
+    values.push(cluster.to_string())
+  }
+  inspect(indices, content="[0]")
+  inspect(values, content="[\"Z\"]")
+}
+
+///|
+test "iter2: on sliced view indices are 0-based" {
+  let g = graphemes("ABCDE")[2:5]
+  let indices : Array[Int] = []
+  let values : Array[String] = []
+  for i, cluster in g.iter2() {
+    indices.push(i)
+    values.push(cluster.to_string())
+  }
+  inspect(indices, content="[0, 1, 2]")
+  inspect(values, content="[\"C\", \"D\", \"E\"]")
+}
+
+// ============================================================
+// W. rev_iter() boundary tests
+// ============================================================
+
+///|
+test "rev_iter: empty" {
+  let g = graphemes("")
+  let result : Array[String] = []
+  for cluster in g.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  inspect(result, content="[]")
+}
+
+///|
+test "rev_iter: single element" {
+  let g = graphemes("Q")
+  let result : Array[String] = []
+  for cluster in g.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  inspect(result, content="[\"Q\"]")
+}
+
+///|
+test "rev_iter: on sliced view" {
+  let g = graphemes("ABCDE")[1:4]
+  let result : Array[String] = []
+  for cluster in g.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  let expected =
+    #|["D", "C", "B"]
+  inspect(result, content=expected)
+}
+
+// ============================================================
+// X. Eq boundary tests
+// ============================================================
+
+///|
+test "Eq: NFC vs NFD are not equal (different codepoints)" {
+  // U+304C (が, precomposed) vs U+304B + U+3099 (か + combining dakuten)
+  // These are different code point sequences, so Eq should be false
+  let nfc = graphemes("\u{304C}")
+  let nfd = graphemes("\u{304B}\u{3099}")
+  // Both are 1 cluster but different string content
+  inspect(nfc.length(), content="1")
+  inspect(nfd.length(), content="1")
+  inspect(nfc == nfd, content="false")
+}
+
+///|
+test "Eq: sliced vs full with same content" {
+  let full = graphemes("BC")
+  let sliced = graphemes("ABCDE")[1:3]
+  inspect(full == sliced, content="true")
+}
+
+///|
+test "Eq: empty sliced vs empty full" {
+  let a = graphemes("")
+  let b = graphemes("ABC")[2:2]
+  inspect(a == b, content="true")
+}
+
+///|
+test "Eq: single cluster with combining marks" {
+  let a = graphemes("a\u{0301}")
+  let b = graphemes("a\u{0301}")
+  inspect(a == b, content="true")
+}
+
+// ============================================================
+// Y. Hash boundary tests
+// ============================================================
+
+///|
+test "Hash: sliced view has consistent hash with equal full view" {
+  let full = graphemes("BC")
+  let sliced = graphemes("ABCDE")[1:3]
+  inspect(full.hash() == sliced.hash(), content="true")
+}
+
+///|
+test "Hash: empty views have same hash" {
+  let a = graphemes("")
+  let b = graphemes("XYZ")[1:1]
+  inspect(a.hash() == b.hash(), content="true")
+}
+
+///|
+test "Hash: different content likely different hash" {
+  let a = graphemes("Hello")
+  let b = graphemes("World")
+  // Not strictly guaranteed, but highly likely for different strings
+  inspect(a.hash() != b.hash(), content="true")
+}
+
+// ============================================================
+// Z. Show boundary tests
+// ============================================================
+
+///|
+test "Show: sliced view" {
+  let g = graphemes("ABCDE")[1:3]
+  inspect(g, content="GraphemeView([\"B\", \"C\"])")
+}
+
+///|
+test "Show: single cluster with combining mark" {
+  let g = graphemes("a\u{0301}")
+  // Combining acute accent renders as part of 'a'
+  inspect(g.length(), content="1")
+  let s = g.to_string()
+  inspect(s.iter().count(), content="2") // 2 code points
+}
+
+///|
+test "Show: special characters" {
+  let g = graphemes("\u{FFFD}")
+  inspect(g, content="GraphemeView([\"\u{FFFD}\"])")
+}
+
+// ============================================================
+// AA. to_string boundary tests
+// ============================================================
+
+///|
+test "to_string: sliced view returns substring" {
+  let g = graphemes("ABCDE")[1:3]
+  inspect(g.to_string(), content="BC")
+}
+
+///|
+test "to_string: sliced view with emoji" {
+  let g = graphemes("A\u{1F600}B")[0:2]
+  inspect(g.to_string(), content="A\u{1F600}")
+}
+
+///|
+test "to_string: empty slice" {
+  let g = graphemes("ABCDE")[3:3]
+  inspect(g.to_string(), content="")
+}
+
+///|
+test "to_string: full slice equals original" {
+  let input = "Hello\u{1F600}World"
+  let g = graphemes(input)
+  inspect(g[:].to_string() == input, content="true")
+}
+
+// ============================================================
+// AB. Extreme input tests
+// ============================================================
+
+///|
+test "graphemes: very long combining mark sequence (100 marks)" {
+  // 1 base character + 100 combining marks = 1 cluster
+  let buf = StringBuilder::new()
+  buf.write_char('a')
+  for i = 0; i < 100; i = i + 1 {
+    buf.write_char('\u{0301}')
+  }
+  let s = buf.to_string()
+  let g = graphemes(s)
+  inspect(g.length(), content="1")
+  // Concatenation invariant
+  inspect(g.to_string() == s, content="true")
+}
+
+///|
+test "graphemes: alternating control and text" {
+  // NUL(Control) + A + NUL(Control) + B + NUL(Control) + C
+  // GB4/GB5: Control always breaks both sides
+  // NUL | A | NUL | B | NUL | C = 6 clusters... wait
+  // Actually "\u{0000}A\u{0000}B\u{0000}C"
+  // GB5: ÷ Control for first NUL from sot
+  // GB4: Control ÷ A
+  // GB5: A ÷ Control (NUL)
+  // GB4: Control ÷ B
+  // GB5: B ÷ Control
+  // GB4: Control ÷ C
+  // So: NUL | A | NUL | B | NUL | C = 6 clusters
+  // But the prompt says "A\u{0000}B\u{0000}C"
+  let g = graphemes("A\u{0000}B\u{0000}C")
+  // A | NUL | B | NUL | C = 5 clusters
+  inspect(g.length(), content="5")
+}
+
+///|
+test "graphemes: only control characters" {
+  let g = graphemes("\u{0000}\u{0001}\u{001F}")
+  // Each control character is its own cluster (GB4: Control ÷, GB5: ÷ Control)
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: mixed CRLF and LF" {
+  // \r\n (CRLF=1) + \r\n (CRLF=1) + \n (LF=1) + \r\n (CRLF=1) = 4 clusters
+  let g = graphemes("\r\n\r\n\n\r\n")
+  inspect(g.length(), content="4")
+}
+
+///|
+test "graphemes: CR LF CR LF pattern" {
+  let g = graphemes("\r\n\r\n")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: isolated CR between text" {
+  // A + CR + B = 3 clusters (GB4: CR ÷, GB5: ÷ CR)
+  let g = graphemes("A\rB")
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: isolated LF between text" {
+  // A + LF + B = 3 clusters
+  let g = graphemes("A\nB")
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: CR not followed by LF" {
+  // CR + A = 2 clusters (GB4: CR ÷)
+  let g = graphemes("\rA")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: string of only CRLFs" {
+  let g = graphemes("\r\n\r\n\r\n")
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: Prepend character" {
+  // Arabic Number Sign U+0600 (Prepend) + digit
+  // GB9b: Prepend × Any, so they form 1 cluster
+  let g = graphemes("\u{0600}1")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Prepend before Control breaks (GB5 over GB9b)" {
+  // Prepend + Control: GB5 (÷ Control) takes priority over GB9b (Prepend ×)
+  let g = graphemes("\u{0600}\u{0000}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: multiple Prepend characters" {
+  // Prepend + Prepend + A: GB9b chains: Prepend × Prepend × A = 1 cluster
+  let g = graphemes("\u{0600}\u{0600}A")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Hangul L V T sequence" {
+  // L (U+1100) + V (U+1161) + T (U+11A8) = 1 cluster (GB6 + GB7/GB8)
+  let g = graphemes("\u{1100}\u{1161}\u{11A8}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Hangul LV + T" {
+  // LV syllable (U+AC00) + T (U+11A8) = 1 cluster (GB8)
+  let g = graphemes("\u{AC00}\u{11A8}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Hangul LVT alone" {
+  // LVT syllable (U+AC01) = 1 cluster
+  let g = graphemes("\u{AC01}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Hangul L + LV + T" {
+  // L + LV + T: GB6 (L × LV), then (LV+T merged as LVT×T) via GB7/GB8 = 1 cluster
+  let g = graphemes("\u{1100}\u{AC00}\u{11A8}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: Hangul two syllables" {
+  // LV (U+AC00) + LVT (U+AC01) = 2 clusters (no rule joins LV+LVT without L/V/T)
+  let g = graphemes("\u{AC00}\u{AC01}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: emoji with skin tone and ZWJ" {
+  // Woman U+1F469 + skin tone U+1F3FB + ZWJ U+200D + laptop U+1F4BB = 1 cluster
+  let g = graphemes("\u{1F469}\u{1F3FB}\u{200D}\u{1F4BB}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: ZWJ between non-emoji creates boundary" {
+  // A + ZWJ + B: ZWJ is Extend-like (GB9: × ZWJ), but B is not EP
+  // A + ZWJ form 1 cluster, B is separate = 2 clusters
+  let g = graphemes("A\u{200D}B")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: InCB triple conjunct" {
+  // ka + virama + ka + virama + ka = 1 cluster (GB9c chains)
+  let g = graphemes("\u{0915}\u{094D}\u{0915}\u{094D}\u{0915}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: InCB without linker breaks" {
+  // ka + ka = 2 clusters (no virama/linker between them)
+  let g = graphemes("\u{0915}\u{0915}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: single regional indicator" {
+  // Single RI = 1 cluster
+  let g = graphemes("\u{1F1E6}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: four regional indicators" {
+  // RI RI RI RI = 2 flags = 2 clusters
+  let g = graphemes("\u{1F1E6}\u{1F1E7}\u{1F1E8}\u{1F1E9}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: six regional indicators" {
+  // RI x6 = 3 flags = 3 clusters
+  let g = graphemes(
+    "\u{1F1E6}\u{1F1E7}\u{1F1E8}\u{1F1E9}\u{1F1EA}\u{1F1EB}",
+  )
+  inspect(g.length(), content="3")
+}
+
+// ============================================================
+// AC. op_as_view() panic/non-panic boundary tests
+// ============================================================
+
+///|
+test "op_as_view: extreme negative start does not panic" {
+  let g = graphemes("ABC")
+  let sliced = g[-100:2]
+  inspect(sliced.length(), content="2")
+}
+
+///|
+test "op_as_view: extreme large end does not panic" {
+  let g = graphemes("ABC")
+  let sliced = g[0:1000]
+  inspect(sliced.length(), content="3")
+}
+
+///|
+test "op_as_view: both extreme does not panic" {
+  let g = graphemes("ABC")
+  let sliced = g[-100:1000]
+  inspect(sliced.length(), content="3")
+}
+
+///|
+test "op_as_view: start equals length" {
+  let g = graphemes("ABC")
+  let sliced = g[3:3]
+  inspect(sliced.length(), content="0")
+  inspect(sliced.is_empty(), content="true")
+}
+
+///|
+test "op_as_view: on empty view" {
+  let g = graphemes("")
+  let sliced = g[0:0]
+  inspect(sliced.length(), content="0")
+}
+
+///|
+test "op_as_view: slice of a slice" {
+  let g = graphemes("ABCDEFGH")
+  let s1 = g[2:6] // C D E F
+  let s2 = s1[1:3] // D E
+  inspect(s2.length(), content="2")
+  inspect(s2[0].to_string(), content="D")
+  inspect(s2[1].to_string(), content="E")
+}
+
+///|
+test "op_as_view: triple nested slice" {
+  let g = graphemes("ABCDEFGHIJ")
+  let s1 = g[1:9] // B C D E F G H I
+  let s2 = s1[2:6] // D E F G
+  let s3 = s2[1:3] // E F
+  inspect(s3.length(), content="2")
+  inspect(s3[0].to_string(), content="E")
+  inspect(s3[1].to_string(), content="F")
+}
+
+// ============================================================
+// AD. get() additional edge cases
+// ============================================================
+
+///|
+test "get: first element of sliced view" {
+  let g = graphemes("ABCDE")[2:4]
+  inspect(
+    g.get(0).map(fn(v) { v.to_string() }),
+    content="Some(\"C\")",
+  )
+}
+
+///|
+test "get: last element of sliced view" {
+  let g = graphemes("ABCDE")[2:4]
+  inspect(
+    g.get(1).map(fn(v) { v.to_string() }),
+    content="Some(\"D\")",
+  )
+}
+
+///|
+test "get: out of range on sliced view" {
+  let g = graphemes("ABCDE")[2:4]
+  inspect(g.get(2), content="None")
+}
+
+///|
+test "get: negative on sliced view" {
+  let g = graphemes("ABCDE")[2:4]
+  inspect(g.get(-1), content="None")
+}
+
+// ============================================================
+// AE. is_empty() on sliced views
+// ============================================================
+
+///|
+test "is_empty: empty slice of non-empty" {
+  let g = graphemes("ABC")[1:1]
+  inspect(g.is_empty(), content="true")
+}
+
+///|
+test "is_empty: non-empty slice" {
+  let g = graphemes("ABC")[1:2]
+  inspect(g.is_empty(), content="false")
+}
+
+// ============================================================
+// AF. Concatenation invariant tests for special strings
+// ============================================================
+
+///|
+test "graphemes: concatenation invariant for CRLF" {
+  let input = "\r\n\r\nA\r\n"
+  let g = graphemes(input)
+  let buf = StringBuilder::new()
+  for cluster in g.iter() {
+    buf.write_string(cluster.to_string())
+  }
+  inspect(buf.to_string() == input, content="true")
+}
+
+///|
+test "graphemes: concatenation invariant for control characters" {
+  let input = "\u{0000}\u{0001}\u{001F}A"
+  let g = graphemes(input)
+  let buf = StringBuilder::new()
+  for cluster in g.iter() {
+    buf.write_string(cluster.to_string())
+  }
+  inspect(buf.to_string() == input, content="true")
+}
+
+///|
+test "graphemes: concatenation invariant for BOM" {
+  let input = "\u{FEFF}Hello"
+  let g = graphemes(input)
+  let buf = StringBuilder::new()
+  for cluster in g.iter() {
+    buf.write_string(cluster.to_string())
+  }
+  inspect(buf.to_string() == input, content="true")
+}
+
+///|
+test "graphemes: concatenation invariant for special codepoints" {
+  let input = "\u{FFFD}\u{E000}\u{FFFF}\u{FDD0}"
+  let g = graphemes(input)
+  let buf = StringBuilder::new()
+  for cluster in g.iter() {
+    buf.write_string(cluster.to_string())
+  }
+  inspect(buf.to_string() == input, content="true")
+}
+
+///|
+test "graphemes: concatenation invariant for long combining marks" {
+  let buf = StringBuilder::new()
+  buf.write_char('a')
+  for i = 0; i < 50; i = i + 1 {
+    buf.write_char('\u{0301}')
+  }
+  let input = buf.to_string()
+  let g = graphemes(input)
+  let buf2 = StringBuilder::new()
+  for cluster in g.iter() {
+    buf2.write_string(cluster.to_string())
+  }
+  inspect(buf2.to_string() == input, content="true")
+}
+
+// ============================================================
+// AG. grapheme_indices() on empty slice
+// ============================================================
+
+///|
+test "grapheme_indices: on empty slice" {
+  let g = graphemes("ABCDE")[2:2]
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  inspect(offsets, content="[]")
+}
+
+///|
+test "grapheme_indices: on full emoji string" {
+  let g = graphemes("\u{1F1EF}\u{1F1F5}A")
+  let offsets : Array[(Int, Int)] = []
+  for entry in g.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  // Flag: 2+2=4 code units, A: 1 code unit
+  inspect(offsets, content="[(0, 4), (4, 5)]")
+}
+
+// ============================================================
+// AH. rev_iter on sliced view with emoji
+// ============================================================
+
+///|
+test "rev_iter: sliced view with emoji" {
+  let g = graphemes("A\u{1F600}BC")[1:3]
+  let result : Array[String] = []
+  for cluster in g.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  inspect(
+    result,
+    content=(
+      #|["B", "😀"]
+    ),
+  )
+}
+
+// ============================================================
+// AI. iter() early termination
+// ============================================================
+
+///|
+test "iter: break early" {
+  let g = graphemes("ABCDE")
+  let result : Array[String] = []
+  for cluster in g.iter() {
+    if result.length() >= 2 {
+      break
+    }
+    result.push(cluster.to_string())
+  }
+  inspect(result, content="[\"A\", \"B\"]")
+}
+
+// ============================================================
+// AJ. Eq and Hash with emoji content
+// ============================================================
+
+///|
+test "Eq: emoji sliced vs full" {
+  let full = graphemes("\u{1F600}")
+  let sliced = graphemes("A\u{1F600}B")[1:2]
+  inspect(full == sliced, content="true")
+}
+
+///|
+test "Hash: emoji sliced vs full" {
+  let full = graphemes("\u{1F600}")
+  let sliced = graphemes("A\u{1F600}B")[1:2]
+  inspect(full.hash() == sliced.hash(), content="true")
+}
+
+// ============================================================
+// AK. Edge case: string consisting only of Extend characters
+// ============================================================
+
+///|
+test "graphemes: multiple lone combining marks" {
+  // Multiple Extend characters without base: GB9 (× Extend) chains them
+  // First one starts from sot (GB1), subsequent ones join via GB9
+  let g = graphemes("\u{0301}\u{0302}\u{0303}")
+  inspect(g.length(), content="1")
+}
+
+///|
+test "graphemes: extend after control" {
+  // Control + Extend: GB4 (Control ÷), so they are separate
+  let g = graphemes("\u{0000}\u{0301}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: ZWJ only string" {
+  // Multiple ZWJs: GB9 (× ZWJ) chains
+  let g = graphemes("\u{200D}\u{200D}\u{200D}")
+  inspect(g.length(), content="1")
+}
+
+// ============================================================
+// AL. SpacingMark edge cases
+// ============================================================
+
+///|
+test "graphemes: SpacingMark after Control does not merge" {
+  // Control + SpacingMark: GB4 (Control ÷) takes precedence over GB9a (× SpacingMark)
+  let g = graphemes("\u{0000}\u{093E}")
+  inspect(g.length(), content="2")
+}
+
+///|
+test "graphemes: SpacingMark after text merges" {
+  // Devanagari Ka + SpacingMark AA = 1 cluster (GB9a)
+  let g = graphemes("\u{0915}\u{093E}")
+  inspect(g.length(), content="1")
+}
+
+// ============================================================
+// AM. length() and iter() consistency on sliced views
+// ============================================================
+
+///|
+test "graphemes: length equals iter count on sliced view" {
+  let g = graphemes("A\u{1F600}B\u{1F1EF}\u{1F1F5}CD")[1:5]
+  let mut count = 0
+  for _cluster in g.iter() {
+    count += 1
+  }
+  assert_eq(g.length(), count)
+}
+
+///|
+test "graphemes: length equals iter2 count on sliced view" {
+  let g = graphemes("ABCDEFGH")[2:6]
+  let mut count = 0
+  for _i, _cluster in g.iter2() {
+    count += 1
+  }
+  assert_eq(g.length(), count)
+}
+
+///|
+test "graphemes: length equals rev_iter count" {
+  let g = graphemes("A\u{1F600}BC")
+  let mut count = 0
+  for _cluster in g.rev_iter() {
+    count += 1
+  }
+  assert_eq(g.length(), count)
+}
+
+///|
+test "graphemes: length equals rev_iter count on sliced" {
+  let g = graphemes("ABCDE")[1:4]
+  let mut count = 0
+  for _cluster in g.rev_iter() {
+    count += 1
+  }
+  assert_eq(g.length(), count)
+}

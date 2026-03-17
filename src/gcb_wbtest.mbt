@@ -168,3 +168,73 @@ test "gcb_category: ASCII fast path tilde" {
 test "gcb_category: ASCII fast path 0x7F is Control" {
   inspect(gcb_category(0x7F), content="Control")
 }
+
+// ============================================================
+// Special Unicode code point GCB category tests
+// ============================================================
+
+///|
+test "gcb_category: U+FFFD (REPLACEMENT CHARACTER) -> Other" {
+  inspect(gcb_category(0xFFFD), content="Other")
+}
+
+///|
+test "gcb_category: U+FEFF (BOM / ZWNBSP) -> Control" {
+  inspect(gcb_category(0xFEFF), content="Control")
+}
+
+///|
+test "gcb_category: U+E000 (Private Use Area start) -> Other" {
+  inspect(gcb_category(0xE000), content="Other")
+}
+
+///|
+test "gcb_category: U+F8FF (Private Use Area end) -> Other" {
+  inspect(gcb_category(0xF8FF), content="Other")
+}
+
+///|
+test "gcb_category: U+FFFF (noncharacter) -> Other" {
+  inspect(gcb_category(0xFFFF), content="Other")
+}
+
+///|
+test "gcb_category: U+FFFE (noncharacter) -> Other" {
+  inspect(gcb_category(0xFFFE), content="Other")
+}
+
+///|
+test "gcb_category: U+FDD0 (noncharacter range start) -> Other" {
+  inspect(gcb_category(0xFDD0), content="Other")
+}
+
+///|
+test "gcb_category: U+FDEF (noncharacter range end) -> Other" {
+  inspect(gcb_category(0xFDEF), content="Other")
+}
+
+///|
+test "gcb_category: U+1FFFE (noncharacter in SMP) -> Other" {
+  inspect(gcb_category(0x1FFFE), content="Other")
+}
+
+///|
+test "gcb_category: U+1FFFF (noncharacter in SMP) -> Other" {
+  inspect(gcb_category(0x1FFFF), content="Other")
+}
+
+///|
+test "gcb_category: U+FFF0 -> Control" {
+  inspect(gcb_category(0xFFF0), content="Control")
+}
+
+///|
+test "gcb_category: U+FFFB -> Control" {
+  inspect(gcb_category(0xFFFB), content="Control")
+}
+
+///|
+test "gcb_category: U+FFFC (OBJECT REPLACEMENT CHARACTER) -> Other" {
+  // U+FFFC is between U+FFFB (Control) and U+FFFD, not in gcb_table
+  inspect(gcb_category(0xFFFC), content="Other")
+}
