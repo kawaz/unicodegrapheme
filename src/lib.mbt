@@ -190,6 +190,13 @@ pub impl Eq for GraphemeView with equal(self, other) {
 }
 
 ///|
+/// Implements Hash trait for GraphemeView.
+/// Uses the string content of the view as the hash source, consistent with Eq.
+pub impl Hash for GraphemeView with hash_combine(self, hasher) {
+  hasher.combine_string(self.to_string())
+}
+
+///|
 /// Iterates over grapheme clusters in reverse order.
 pub fn GraphemeView::rev_iter(self : GraphemeView) -> Iter[StringView] {
   let mut i = self.length() - 1

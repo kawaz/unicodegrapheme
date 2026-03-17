@@ -580,3 +580,72 @@ test "GraphemeView: Eq sliced" {
   let b = graphemes("BC")
   inspect(a == b, content="true")
 }
+
+// ============================================================
+// P. Hash trait tests
+// ============================================================
+
+///|
+test "GraphemeView: Hash consistency with Eq" {
+  let a = graphemes("Hello")
+  let b = graphemes("Hello")
+  // Equal objects must have equal hashes
+  assert_eq(a.hash(), b.hash())
+}
+
+///|
+test "GraphemeView: Hash in HashMap" {
+  let map : Map[String, Int] = {}
+  // GraphemeView を文字列キーとして使う例（直接キーにはしないが、hash は使える）
+  let g = graphemes("Hello🌍")
+  map[g.to_string()] = g.length()
+  inspect(map["Hello🌍"], content="6")
+}
+
+// ============================================================
+// Q. Slice edge case tests
+// ============================================================
+
+///|
+test "GraphemeView: slice emoji preservation" {
+  // 絵文字がスライスで壊れないことを確認
+  let g = graphemes("A🇯🇵B")
+  let sliced = g[1:2]
+  inspect(sliced[0].to_string(), content="🇯🇵")
+}
+
+///|
+test "GraphemeView: slice then iter" {
+  let g = graphemes("ABCDE")
+  let sliced = g[1:4]
+  let result : Array[String] = []
+  for cluster in sliced {
+    result.push(cluster.to_string())
+  }
+  inspect(result.length(), content="3")
+}
+
+///|
+test "GraphemeView: slice then iter2" {
+  let g = graphemes("ABCDE")
+  let sliced = g[1:4]
+  let indices : Array[Int] = []
+  for i, _cluster in sliced.iter2() {
+    indices.push(i)
+  }
+  // スライス内のインデックスは0始まり
+  inspect(indices, content="[0, 1, 2]")
+}
+
+///|
+test "GraphemeView: slice then rev_iter" {
+  let g = graphemes("ABCDE")
+  let sliced = g[1:4]
+  let result : Array[String] = []
+  for cluster in sliced.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  let expected =
+    #|["D", "C", "B"]
+  inspect(result, content=expected)
+}

@@ -82,6 +82,15 @@ test "bench: graphemes mixed real world" (b : @bench.T) {
 }
 
 ///|
+test "bench: graphemes slice" (b : @bench.T) {
+  let g = graphemes("Hello, World! This is a test string for slicing.")
+  b.bench(fn() {
+    let sliced = g[5:10]
+    b.keep(sliced)
+  })
+}
+
+///|
 test "bench: gcb_category ASCII" (b : @bench.T) {
   b.bench(fn() {
     let cat = gcb_category(0x41) // 'A'
