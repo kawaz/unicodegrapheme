@@ -71,7 +71,7 @@ Reverse iteration over grapheme clusters.
 
 ### `GraphemeView::to_string() -> String`
 
-Returns the original source string.
+Returns the string content of this view. Returns a substring if the view has been sliced.
 
 ### `GraphemeView::grapheme_indices() -> Iter[(Int, Int, StringView)]`
 

@@ -182,7 +182,8 @@ pub impl Eq for GraphemeView with equal(self, other) {
     return false
   }
   for i = 0; i < len; i = i + 1 {
-    if self[i].to_string() != other[i].to_string() {
+    // Compare StringViews directly (avoids String allocation)
+    if not(self[i] == other[i]) {
       return false
     }
   }

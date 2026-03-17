@@ -71,7 +71,7 @@ grapheme cluster を逆順にイテレートする。
 
 ### `GraphemeView::to_string() -> String`
 
-元のソース文字列をそのまま返す。
+このビューの文字列内容を返す。スライスされている場合は部分文字列を返す。
 
 ### `GraphemeView::grapheme_indices() -> Iter[(Int, Int, StringView)]`
 

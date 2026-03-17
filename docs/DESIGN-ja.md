@@ -43,13 +43,15 @@ GraphemeView {
 ### 段階的実装
 
 1. **Phase 0（完了）**: コードポイント単位の暫定実装。サロゲートペアは正しく処理。
-2. **Phase 1**: UAX #29 全GBルール実装（テーブル生成 + ステートマシン + 全テストケース合格）
-3. **Phase 2**: パフォーマンス最適化（二段ルックアップテーブル、Compressed Bitset等）
-4. **Phase 3**: 追加 API（スライス、逆イテレーション、grapheme 単位 width 等）
+2. **Phase 1（完了）**: UAX #29 全GBルール実装 -- テーブル生成、ステートマシン、公式テスト全1,093件パス。
+3. **Phase 2（一部完了）**: パフォーマンス最適化 -- ASCII fast path 実装済み。二段ルックアップテーブル・Compressed Bitset は未着手（現状のバイナリサーチで十分高速なため保留）。
+4. **Phase 3（完了）**: 追加 API -- スライス（`op_as_view`）、逆イテレーション（`rev_iter`）、`iter2`、`grapheme_indices`、`Show`/`Eq`/`Hash` trait、`get`/`is_empty`/`to_string`。
 
 ---
 
 ## Phase 1 詳細設計
+
+> **ステータス: Phase 1 は完了済み。** UAX #29 の全GBルールを実装し、Unicode 16.0.0 データからテーブルを生成、公式テスト全1,093件がパスしている。
 
 ### 1. アーキテクチャ
 

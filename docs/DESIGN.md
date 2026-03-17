@@ -43,13 +43,15 @@ GraphemeView {
 ### Phased Implementation
 
 1. **Phase 0 (complete)**: Provisional code point-level implementation. Surrogate pairs handled correctly.
-2. **Phase 1**: Full UAX #29 GB rule implementation (table generation + state machine + all test cases passing)
-3. **Phase 2**: Performance optimization (two-level lookup table, compressed bitset, etc.)
-4. **Phase 3**: Additional APIs (slicing, reverse iteration, grapheme-level width, etc.)
+2. **Phase 1 (complete)**: Full UAX #29 GB rule implementation -- table generation, state machine, all 1,093 official test cases passing.
+3. **Phase 2 (partial)**: Performance optimization -- ASCII fast path implemented. Two-level lookup table and compressed bitset deferred (current binary search is sufficiently fast).
+4. **Phase 3 (complete)**: Additional APIs -- slice (`op_as_view`), reverse iteration (`rev_iter`), `iter2`, `grapheme_indices`, `Show`/`Eq`/`Hash` traits, `get`/`is_empty`/`to_string`.
 
 ---
 
 ## Phase 1 Detailed Design
+
+> **Status: Phase 1 is complete.** All UAX #29 GB rules are implemented, tables are generated from Unicode 16.0.0 data, and all 1,093 official test cases pass.
 
 ### 1. Architecture
 
