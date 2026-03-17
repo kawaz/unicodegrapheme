@@ -35,7 +35,11 @@ for cluster in view.iter() {
 
 ### `graphemes(s: String) -> GraphemeView`
 
-Returns a `GraphemeView` that splits the string into grapheme cluster units.
+Returns a `GraphemeView` that splits the string into grapheme cluster units. Scans the entire string upfront (O(n) preprocessing). For lazy evaluation, use `grapheme_iter()` instead.
+
+### `grapheme_iter(s: String) -> Iter[StringView]`
+
+Lazy grapheme cluster iterator. Yields clusters one at a time without preprocessing the entire string. Ideal when you only need the first few clusters of a long string. For random access or repeated iteration, use `graphemes()` instead.
 
 ### `GraphemeView::length() -> Int`
 

@@ -1694,3 +1694,65 @@ test "graphemes: concatenation invariant Arabic" {
   }
   inspect(buf.to_string() == input, content="true")
 }
+
+///|
+test "grapheme_iter: basic iteration" {
+  let result : Array[String] = []
+  for cluster in grapheme_iter("A\u{1F600}B") {
+    result.push(cluster.to_string())
+  }
+  inspect(result.length(), content="3")
+  inspect(result[0], content="A")
+  inspect(result[1], content="\u{1F600}")
+  inspect(result[2], content="B")
+}
+
+///|
+test "grapheme_iter: early break (first 2 only)" {
+  let result : Array[String] = []
+  for cluster in grapheme_iter("ABCDEFGHIJ") {
+    result.push(cluster.to_string())
+    if result.length() >= 2 {
+      break
+    }
+  }
+  inspect(result.length(), content="2")
+  inspect(result[0], content="A")
+  inspect(result[1], content="B")
+}
+
+///|
+test "grapheme_iter: empty string" {
+  let mut count = 0
+  for _cluster in grapheme_iter("") {
+    count += 1
+  }
+  inspect(count, content="0")
+}
+
+///|
+test "grapheme_iter: family emoji is 1 cluster" {
+  let mut count = 0
+  for _cluster in grapheme_iter(
+    "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
+  ) {
+    count += 1
+  }
+  inspect(count, content="1")
+}
+
+///|
+test "grapheme_iter: matches graphemes()" {
+  // grapheme_iter と graphemes() の結果が一致することを確認
+  let inputs = [
+    "Hello", "A\u{1F600}B", "\r\n", "\u{1F1EF}\u{1F1F5}\u{1F1FA}", "",
+  ]
+  for input in inputs {
+    let g = graphemes(input)
+    let iter_result : Array[String] = []
+    for cluster in grapheme_iter(input) {
+      iter_result.push(cluster.to_string())
+    }
+    assert_eq(g.length(), iter_result.length())
+  }
+}

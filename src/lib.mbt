@@ -12,6 +12,8 @@ pub struct GraphemeView {
 ///|
 /// Returns a GraphemeView that splits the string into grapheme cluster units.
 /// Implements UAX #29 GB rules as a state machine.
+/// Note: This function scans the entire string upfront (O(n) preprocessing).
+/// For lazy evaluation, use grapheme_iter() instead.
 pub fn graphemes(s : String) -> GraphemeView {
   let boundaries : Array[Int] = []
   let mut offset = 0
@@ -51,6 +53,78 @@ pub fn graphemes(s : String) -> GraphemeView {
     0
   }
   { source: s, boundaries, cluster_start: 0, cluster_end }
+}
+
+///|
+/// Returns a lazy iterator that yields grapheme clusters one at a time
+/// without preprocessing the entire string.
+/// Use this when you only need the first few clusters of a long string.
+/// For random access or repeated iteration, use graphemes() instead.
+pub fn grapheme_iter(s : String) -> Iter[StringView] {
+  // Mutable state for the state machine, captured by the closure.
+  // Each call to the closure advances to the next cluster boundary.
+  let len = s.length() // UTF-16 code unit count
+  let mut offset = 0
+  let mut prev_gcb : GCBCategory? = None
+  let mut ri_count = 0
+  let mut emoji_state : EmojiState = ES_None
+  let mut incb_state : InCBState = IC_None
+  let mut cluster_start = 0
+  let mut started = false
+  let mut done = false
+  Iter::new(fn() {
+    if done {
+      return None
+    }
+    // Advance through code points until we find the next boundary
+    while offset < len {
+      // Decode one code point from UTF-16
+      let unit = s.at(offset).to_int()
+      let (cp, cp_len) = if unit >= 0xD800 && unit <= 0xDBFF && offset + 1 < len {
+        // High surrogate: decode surrogate pair
+        let lo = s.at(offset + 1).to_int()
+        let decoded = ((unit - 0xD800) * 0x400) + (lo - 0xDC00) + 0x10000
+        (decoded, 2)
+      } else {
+        (unit, 1)
+      }
+      let cur_gcb = gcb_category(cp)
+      let is_boundary = match prev_gcb {
+        None => true
+        Some(prev) =>
+          check_boundary(prev, cur_gcb, ri_count, emoji_state, incb_state)
+      }
+      if is_boundary && started {
+        // Found next boundary: yield the cluster from cluster_start to offset
+        let view = s.view(start_offset=cluster_start, end_offset=offset)
+        // Prepare state for next call
+        cluster_start = offset
+        ri_count = if cur_gcb == Regional_Indicator { ri_count + 1 } else { 0 }
+        emoji_state = next_emoji_state(emoji_state, cur_gcb)
+        incb_state = next_incb_state(incb_state, cur_gcb, cp)
+        prev_gcb = Some(cur_gcb)
+        offset = offset + cp_len
+        return Some(view)
+      }
+      if is_boundary {
+        cluster_start = offset
+        started = true
+      }
+      // State updates
+      ri_count = if cur_gcb == Regional_Indicator { ri_count + 1 } else { 0 }
+      emoji_state = next_emoji_state(emoji_state, cur_gcb)
+      incb_state = next_incb_state(incb_state, cur_gcb, cp)
+      prev_gcb = Some(cur_gcb)
+      offset = offset + cp_len
+    }
+    // End of string: yield the last cluster
+    if started {
+      done = true
+      Some(s.view(start_offset=cluster_start, end_offset=offset))
+    } else {
+      None
+    }
+  })
 }
 
 ///|
@@ -134,6 +208,8 @@ pub fn GraphemeView::iter(self : GraphemeView) -> Iter[StringView] {
 
 ///|
 /// Returns a sliced GraphemeView. Enables `view[start:end]` syntax.
+/// Negative start is clamped to 0. End beyond length is clamped to length.
+/// If end < start, an empty view is returned.
 pub fn GraphemeView::op_as_view(
   self : GraphemeView,
   start? : Int,

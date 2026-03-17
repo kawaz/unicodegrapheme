@@ -35,7 +35,11 @@ for cluster in view.iter() {
 
 ### `graphemes(s: String) -> GraphemeView`
 
-文字列を grapheme cluster 単位で分割した `GraphemeView` を返す。
+文字列を grapheme cluster 単位で分割した `GraphemeView` を返す。文字列全体を事前走査する（O(n) 前処理）。遅延評価には `grapheme_iter()` を使用。
+
+### `grapheme_iter(s: String) -> Iter[StringView]`
+
+遅延 grapheme cluster イテレータ。文字列全体を前処理せず、1クラスタずつ返す。長い文字列の先頭数クラスタだけ必要な場合に最適。ランダムアクセスや繰り返しイテレーションには `graphemes()` を使用。
 
 ### `GraphemeView::length() -> Int`
 

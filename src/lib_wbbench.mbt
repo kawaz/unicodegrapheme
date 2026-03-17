@@ -105,3 +105,34 @@ test "bench: gcb_category emoji" (b : @bench.T) {
     b.keep(cat)
   })
 }
+
+///|
+test "bench: grapheme_iter ASCII long (first 10 only)" (b : @bench.T) {
+  let buf = StringBuilder::new()
+  for i = 0; i < 100; i = i + 1 {
+    buf.write_string("0123456789")
+  }
+  let s = buf.to_string()
+  b.bench(fn() {
+    let mut count = 0
+    for _cluster in grapheme_iter(s) {
+      count += 1
+      if count >= 10 { break }
+    }
+    b.keep(count)
+  })
+}
+
+///|
+test "bench: graphemes ASCII long (first 10 via slice)" (b : @bench.T) {
+  let buf = StringBuilder::new()
+  for i = 0; i < 100; i = i + 1 {
+    buf.write_string("0123456789")
+  }
+  let s = buf.to_string()
+  b.bench(fn() {
+    let g = graphemes(s)
+    let sliced = g[0:10]
+    b.keep(sliced)
+  })
+}
