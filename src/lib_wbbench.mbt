@@ -26,7 +26,9 @@ test "bench: graphemes emoji ZWJ" (b : @bench.T) {
   // Family emoji x 10
   let buf = StringBuilder::new()
   for i = 0; i < 10; i = i + 1 {
-    buf.write_string("\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}")
+    buf.write_string(
+      "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
+    )
   }
   let s = buf.to_string()
   b.bench(fn() {

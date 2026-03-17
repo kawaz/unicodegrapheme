@@ -23,9 +23,12 @@ test "graphemes: iter" {
   for cluster in graphemes("A\u{1F600}B").iter() {
     result.push(cluster.to_string())
   }
-  inspect(result, content=(
-    #|["A", "😀", "B"]
-  ))
+  inspect(
+    result,
+    content=(
+      #|["A", "😀", "B"]
+    ),
+  )
 }
 
 ///|
@@ -134,7 +137,6 @@ test "graphemes: op_get last index" {
 test "panic op_get negative index" {
   let g = graphemes("ABC")
   let _ = g[-1]
-
 }
 
 ///|
@@ -142,7 +144,6 @@ test "panic op_get negative index" {
 test "panic op_get out of range" {
   let g = graphemes("ABC")
   let _ = g[3]
-
 }
 
 ///|
@@ -150,7 +151,6 @@ test "panic op_get out of range" {
 test "panic op_get on empty" {
   let g = graphemes("")
   let _ = g[0]
-
 }
 
 // ============================================================
@@ -332,8 +332,7 @@ test "graphemes: concatenation invariant combining marks" {
 // length() and iter() count should match
 test "graphemes: length equals iter count" {
   let inputs = [
-    "", "A", "ABC", "\u{1F600}", "\r\n",
-    "\u{1F1EF}\u{1F1F5}", "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
+    "", "A", "ABC", "\u{1F600}", "\r\n", "\u{1F1EF}\u{1F1F5}", "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
     "a\u{0301}\u{0302}\u{0303}",
   ]
   for input in inputs {
@@ -577,8 +576,7 @@ test "GraphemeView: Eq empty" {
 
 ///|
 test "GraphemeView: Eq sliced" {
-  let a = graphemes("ABCDE")[1:3]  // B, C
+  let a = graphemes("ABCDE")[1:3] // B, C
   let b = graphemes("BC")
   inspect(a == b, content="true")
 }
-

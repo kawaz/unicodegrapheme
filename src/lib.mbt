@@ -25,7 +25,8 @@ pub fn graphemes(s : String) -> GraphemeView {
     // GB1: sot ÷ Any -- first code point is unconditionally a boundary
     let is_boundary = match prev_gcb {
       None => true
-      Some(prev) => check_boundary(prev, cur_gcb, ri_count, emoji_state, incb_state)
+      Some(prev) =>
+        check_boundary(prev, cur_gcb, ri_count, emoji_state, incb_state)
     }
     if is_boundary {
       boundaries.push(offset)
@@ -61,10 +62,7 @@ pub fn GraphemeView::length(self : GraphemeView) -> Int {
 ///|
 /// Returns the i-th grapheme cluster as a StringView.
 /// Panics if i is not in the range 0 <= i < length().
-pub fn GraphemeView::op_get(
-  self : GraphemeView,
-  i : Int
-) -> StringView {
+pub fn GraphemeView::op_get(self : GraphemeView, i : Int) -> StringView {
   let start = self.boundaries[self.cluster_start + i]
   let end = self.boundaries[self.cluster_start + i + 1]
   self.source.view(start_offset=start, end_offset=end)
@@ -92,10 +90,12 @@ pub fn GraphemeView::to_string(self : GraphemeView) -> String {
   if self.length() == 0 {
     ""
   } else {
-    self.source.view(
+    self.source
+    .view(
       start_offset=self.boundaries[self.cluster_start],
       end_offset=self.boundaries[self.cluster_end],
-    ).to_string()
+    )
+    .to_string()
   }
 }
 
@@ -137,7 +137,7 @@ pub fn GraphemeView::iter(self : GraphemeView) -> Iter[StringView] {
 pub fn GraphemeView::op_as_view(
   self : GraphemeView,
   start? : Int,
-  end? : Int
+  end? : Int,
 ) -> GraphemeView {
   let len = self.length()
   let s = match start {

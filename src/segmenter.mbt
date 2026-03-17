@@ -4,7 +4,7 @@ priv enum EmojiState {
   ES_None
   ES_EP_Seen // Seen Extended_Pictographic
   ES_EP_Extend_ZWJ // Seen Extend* ZWJ after EP
-} derive(Eq, Show)
+} derive(Eq)
 
 ///|
 /// State tracking for InCB Conjunct (GB9c).
@@ -12,7 +12,7 @@ priv enum InCBState {
   IC_None
   IC_Consonant_Seen // Seen InCB_Consonant
   IC_Consonant_Linker_Seen // Seen [Extend|Linker]* Linker after Consonant
-} derive(Eq, Show)
+} derive(Eq)
 
 ///|
 /// Determines grapheme cluster boundary from prev and cur pair.
@@ -95,7 +95,11 @@ fn next_emoji_state(state : EmojiState, cur_gcb : GCBCategory) -> EmojiState {
 
 ///|
 /// State transition for InCB Conjunct.
-fn next_incb_state(state : InCBState, cur_gcb : GCBCategory, cp : Int) -> InCBState {
+fn next_incb_state(
+  state : InCBState,
+  cur_gcb : GCBCategory,
+  cp : Int,
+) -> InCBState {
   if cur_gcb == InCB_Consonant {
     IC_Consonant_Seen
   } else if state != IC_None && is_incb_linker(cp) {

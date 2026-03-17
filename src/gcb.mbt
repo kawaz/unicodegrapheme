@@ -18,7 +18,7 @@ priv enum GCBCategory {
   LVT // Hangul LVT Syllable
   Extended_Pictographic
   InCB_Consonant
-} derive(Eq, Show)
+} derive(Eq)
 
 ///|
 /// Returns the GCB category for a code point (returns Other if not in the table).
