@@ -468,3 +468,117 @@ test "GraphemeView: to_string preserves combining marks" {
   inspect(graphemes(input).to_string() == input, content="true")
 }
 
+// ============================================================
+// L. op_as_view() slice tests
+// ============================================================
+
+///|
+test "GraphemeView: slice with op_as_view" {
+  let g = graphemes("ABCDE")
+  let sliced = g[1:3] // B, C
+  inspect(sliced.length(), content="2")
+  inspect(sliced[0].to_string(), content="B")
+  inspect(sliced[1].to_string(), content="C")
+}
+
+///|
+test "GraphemeView: slice to_string" {
+  let g = graphemes("ABCDE")
+  let sliced = g[1:3]
+  inspect(sliced.to_string(), content="BC")
+}
+
+///|
+test "GraphemeView: slice full range" {
+  let g = graphemes("ABC")
+  let sliced = g[0:3]
+  inspect(sliced.length(), content="3")
+}
+
+///|
+test "GraphemeView: slice empty" {
+  let g = graphemes("ABC")
+  let sliced = g[1:1]
+  inspect(sliced.is_empty(), content="true")
+}
+
+///|
+test "GraphemeView: nested slice" {
+  let g = graphemes("ABCDE")
+  let s1 = g[1:4] // B, C, D
+  let s2 = s1[1:2] // C
+  inspect(s2[0].to_string(), content="C")
+}
+
+// ============================================================
+// M. iter2() indexed iteration tests
+// ============================================================
+
+///|
+test "GraphemeView: iter2 indexed iteration" {
+  let g = graphemes("A\u{1F600}B")
+  let indices : Array[Int] = []
+  let values : Array[String] = []
+  for i, cluster in g.iter2() {
+    indices.push(i)
+    values.push(cluster.to_string())
+  }
+  inspect(indices, content="[0, 1, 2]")
+  inspect(values[1], content="\u{1F600}")
+}
+
+// ============================================================
+// N. rev_iter() reverse iteration tests
+// ============================================================
+
+///|
+test "GraphemeView: rev_iter" {
+  let g = graphemes("ABC")
+  let result : Array[String] = []
+  for cluster in g.rev_iter() {
+    result.push(cluster.to_string())
+  }
+  let expected =
+    #|["C", "B", "A"]
+  inspect(result, content=expected)
+}
+
+// ============================================================
+// O. Eq trait tests
+// ============================================================
+
+///|
+test "GraphemeView: Eq same string" {
+  let a = graphemes("Hello")
+  let b = graphemes("Hello")
+  inspect(a == b, content="true")
+}
+
+///|
+test "GraphemeView: Eq different string" {
+  let a = graphemes("Hello")
+  let b = graphemes("World")
+  inspect(a == b, content="false")
+}
+
+///|
+test "GraphemeView: Eq different length" {
+  let a = graphemes("AB")
+  let b = graphemes("ABC")
+  inspect(a == b, content="false")
+}
+
+///|
+test "GraphemeView: Eq empty" {
+  let a = graphemes("")
+  let b = graphemes("")
+  inspect(a == b, content="true")
+}
+
+///|
+test "GraphemeView: Eq sliced" {
+  let a = graphemes("ABCDE")[1:3]  // B, C
+  let b = graphemes("BC")
+  inspect(a == b, content="true")
+}
+

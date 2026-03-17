@@ -13,9 +13,13 @@ pub struct GraphemeView {
 pub fn GraphemeView::get(Self, Int) -> StringView?
 pub fn GraphemeView::is_empty(Self) -> Bool
 pub fn GraphemeView::iter(Self) -> Iter[StringView]
+pub fn GraphemeView::iter2(Self) -> Iter2[Int, StringView]
 pub fn GraphemeView::length(Self) -> Int
+pub fn GraphemeView::op_as_view(Self, start? : Int, end? : Int) -> Self
 pub fn GraphemeView::op_get(Self, Int) -> StringView
+pub fn GraphemeView::rev_iter(Self) -> Iter[StringView]
 pub fn GraphemeView::to_string(Self) -> String
+pub impl Eq for GraphemeView
 pub impl Show for GraphemeView
 
 // Type aliases

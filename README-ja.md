@@ -57,9 +57,25 @@ grapheme cluster を順にイテレートする。`for cluster in view { ... }` 
 
 grapheme cluster が0個かどうかを返す。
 
+### `GraphemeView::op_as_view(start?: Int, end?: Int) -> GraphemeView`
+
+スライス操作。`view[1:3]` 構文をサポート。指定範囲の新しい `GraphemeView` を返す。
+
+### `GraphemeView::iter2() -> Iter2[Int, StringView]`
+
+インデックス付きイテレーション。`for (i, cluster) in view { ... }` をサポート。
+
+### `GraphemeView::rev_iter() -> Iter[StringView]`
+
+grapheme cluster を逆順にイテレートする。
+
 ### `GraphemeView::to_string() -> String`
 
 元のソース文字列をそのまま返す。
+
+### `impl Eq for GraphemeView`
+
+等値比較。2つの `GraphemeView` が同じクラスタ数で、各クラスタの文字列内容が一致する場合に `true` を返す。`==` 演算子をサポート。
 
 ## Roadmap
 
@@ -69,7 +85,7 @@ grapheme cluster が0個かどうかを返す。
 - [x] mooncakes.io 公開
 - [x] ASCII fast path 最適化
 - [x] 安全アクセス (`get`)、`Show` trait、`is_empty`、`to_string`
-- [ ] スライス操作（`view[1:3]`）
+- [x] スライス操作（`view[1:3]`）
 
 ## Unicode Version
 

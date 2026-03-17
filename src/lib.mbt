@@ -1,9 +1,12 @@
 ///|
 /// A view type that holds Unicode grapheme cluster boundary information.
 /// Each grapheme cluster can be accessed as a zero-copy slice of the original String.
+/// Supports slicing via `cluster_start` and `cluster_end` indices into the boundaries array.
 pub struct GraphemeView {
   priv source : String
   priv boundaries : Array[Int] // start offset of each cluster (last element is the string end)
+  priv cluster_start : Int // index into boundaries for the first cluster (inclusive)
+  priv cluster_end : Int // index into boundaries for the end cluster (exclusive)
 }
 
 ///|
@@ -41,17 +44,18 @@ pub fn graphemes(s : String) -> GraphemeView {
   if boundaries.length() > 0 {
     boundaries.push(offset)
   }
-  { source: s, boundaries }
+  let cluster_end = if boundaries.length() > 1 {
+    boundaries.length() - 1
+  } else {
+    0
+  }
+  { source: s, boundaries, cluster_start: 0, cluster_end }
 }
 
 ///|
 /// Returns the number of grapheme clusters.
 pub fn GraphemeView::length(self : GraphemeView) -> Int {
-  if self.boundaries.length() <= 1 {
-    0
-  } else {
-    self.boundaries.length() - 1
-  }
+  self.cluster_end - self.cluster_start
 }
 
 ///|
@@ -61,8 +65,8 @@ pub fn GraphemeView::op_get(
   self : GraphemeView,
   i : Int
 ) -> StringView {
-  let start = self.boundaries[i]
-  let end = self.boundaries[i + 1]
+  let start = self.boundaries[self.cluster_start + i]
+  let end = self.boundaries[self.cluster_start + i + 1]
   self.source.view(start_offset=start, end_offset=end)
 }
 
@@ -83,9 +87,16 @@ pub fn GraphemeView::is_empty(self : GraphemeView) -> Bool {
 }
 
 ///|
-/// Returns the original source string.
+/// Returns the string content of this view (may be a substring if sliced).
 pub fn GraphemeView::to_string(self : GraphemeView) -> String {
-  self.source
+  if self.length() == 0 {
+    ""
+  } else {
+    self.source.view(
+      start_offset=self.boundaries[self.cluster_start],
+      end_offset=self.boundaries[self.cluster_end],
+    ).to_string()
+  }
 }
 
 ///|
@@ -116,6 +127,78 @@ pub fn GraphemeView::iter(self : GraphemeView) -> Iter[StringView] {
     } else {
       let result = self[i]
       i += 1
+      Some(result)
+    }
+  })
+}
+
+///|
+/// Returns a sliced GraphemeView. Enables `view[start:end]` syntax.
+pub fn GraphemeView::op_as_view(
+  self : GraphemeView,
+  start? : Int,
+  end? : Int
+) -> GraphemeView {
+  let len = self.length()
+  let s = match start {
+    None => 0
+    Some(v) => if v < 0 { 0 } else if v > len { len } else { v }
+  }
+  let e = match end {
+    None => len
+    Some(v) => if v < s { s } else if v > len { len } else { v }
+  }
+  {
+    source: self.source,
+    boundaries: self.boundaries,
+    cluster_start: self.cluster_start + s,
+    cluster_end: self.cluster_start + e,
+  }
+}
+
+///|
+/// Iterates over grapheme clusters with their indices.
+pub fn GraphemeView::iter2(self : GraphemeView) -> Iter2[Int, StringView] {
+  let len = self.length()
+  let mut i = 0
+  Iter2::new(fn() {
+    if i >= len {
+      None
+    } else {
+      let idx = i
+      let cluster = self[idx]
+      i += 1
+      Some((idx, cluster))
+    }
+  })
+}
+
+///|
+/// Two GraphemeViews are equal if they have the same number of clusters
+/// and each corresponding cluster has the same string content.
+pub impl Eq for GraphemeView with equal(self, other) {
+  let len = self.length()
+  if len != other.length() {
+    return false
+  }
+  for i = 0; i < len; i = i + 1 {
+    if self[i].to_string() != other[i].to_string() {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// Iterates over grapheme clusters in reverse order.
+pub fn GraphemeView::rev_iter(self : GraphemeView) -> Iter[StringView] {
+  let mut i = self.length() - 1
+  Iter::new(fn() {
+    if i < 0 {
+      None
+    } else {
+      let result = self[i]
+      i -= 1
       Some(result)
     }
   })

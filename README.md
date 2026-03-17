@@ -57,9 +57,25 @@ Iterates over grapheme clusters in order. Supports `for cluster in view { ... }`
 
 Returns `true` if there are no grapheme clusters.
 
+### `GraphemeView::op_as_view(start?: Int, end?: Int) -> GraphemeView`
+
+Slice operation. Supports `view[1:3]` syntax. Returns a new `GraphemeView` for the specified range.
+
+### `GraphemeView::iter2() -> Iter2[Int, StringView]`
+
+Indexed iteration. Supports `for (i, cluster) in view { ... }`.
+
+### `GraphemeView::rev_iter() -> Iter[StringView]`
+
+Reverse iteration over grapheme clusters.
+
 ### `GraphemeView::to_string() -> String`
 
 Returns the original source string.
+
+### `impl Eq for GraphemeView`
+
+Equality comparison. Two `GraphemeView`s are equal if they have the same number of clusters and each corresponding cluster has the same string content. Supports `==` operator.
 
 ## Roadmap
 
@@ -69,7 +85,7 @@ Returns the original source string.
 - [x] Publish to mooncakes.io
 - [x] ASCII fast path optimization
 - [x] Safe access (`get`), `Show` trait, `is_empty`, `to_string`
-- [ ] Slice operations (`view[1:3]`)
+- [x] Slice operations (`view[1:3]`)
 
 ## Unicode Version
 
