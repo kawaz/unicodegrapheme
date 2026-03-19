@@ -37,12 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 - Repository URL in moon.mod.json
 
+## [0.7.0] - 2026-03-19
+
+### Added
+- `grapheme_iter()` lazy iterator (up to 64x faster for early-break use cases)
+- `SegmenterState` extraction for shared state machine logic
+
 ## [0.5.0] - 2026-03-18
 
 ### Added
 - `grapheme_indices()` API with UTF-16 code unit offsets
 - `Hash` trait for `GraphemeView`
-- `grapheme_iter()` lazy iterator (64x faster for early-break)
 - 105 abnormal/boundary/special Unicode tests
 - Publish size optimization (exclude test/bench files)
 
@@ -60,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 [Unreleased]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.8.0...HEAD
 [0.8.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.7.1...v0.8.0
-[0.7.1]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.5.0...v0.7.1
+[0.7.1]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.5.0...v0.7.0
 [0.5.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.1.0...v0.5.0
 [0.1.0]: https://github.com/kawaz/unicodegrapheme.mbt/releases/tag/v0.1.0

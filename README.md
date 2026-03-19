@@ -11,7 +11,7 @@ English | [日本語](README-ja.md)
 ## Overview
 
 MoonBit's String uses UTF-16 internal representation, so `length()` and `str[i]` operate at the UTF-16 code unit level.
-This library provides APIs for safely manipulating strings at the grapheme cluster level (the unit humans perceive as a single "character"), based on [UAX #29](https://unicode.org/reports/tr29/) (Unicode Text Segmentation).
+This library provides APIs for safely manipulating strings at the grapheme cluster level (the unit humans perceive as a single "character"), based on the **default extended grapheme cluster** rules in [UAX #29](https://unicode.org/reports/tr29/) (Unicode Text Segmentation). Locale-specific tailored rules are not supported.
 
 | Layer | Problem | Solution |
 |-------|---------|----------|
@@ -48,6 +48,8 @@ for cluster in view {
 // Lazy evaluation: fast when you only need the first few clusters
 let first = @unicodegrapheme.grapheme_iter("very long text...").head()
 ```
+
+`graphemes()` pre-scans the entire string to provide random access and slicing. Use `grapheme_iter()` when you only need the first N clusters (no full scan required).
 
 ## API
 
