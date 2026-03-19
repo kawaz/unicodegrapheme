@@ -48,7 +48,7 @@ GraphemeView {
 1. **Phase 0 (complete)**: Provisional code point-level implementation. Surrogate pairs handled correctly.
 2. **Phase 1 (complete)**: Full UAX #29 GB rule implementation -- table generation, state machine, all 766 official test cases passing.
 3. **Phase 2 (partial)**: Performance optimization -- ASCII fast path implemented. Two-level lookup table and compressed bitset deferred (current binary search is sufficiently fast).
-4. **Phase 3 (complete)**: Additional APIs -- slice (`op_as_view`), reverse iteration (`rev_iter`), `iter2`, `grapheme_indices`, `Show`/`Eq`/`Hash` traits, `get`/`is_empty`/`to_string`.
+4. **Phase 3 (complete)**: Additional APIs -- slice (`op_as_view`), reverse iteration (`rev_iter`), `iter2`, `grapheme_indices`, `Show`/`Eq`/`Hash` traits, `get`/`is_empty`/`to_string`, lazy iterator (`grapheme_iter`).
 
 ---
 
@@ -70,6 +70,7 @@ src/
   gcb_wbtest.mbt       # White-box tests: gcb_category() tests
   segmenter_wbtest.mbt # White-box tests: check_boundary() individual GB rule tests
   uax29_test.mbt       # Black-box tests: all 766 official test cases
+  lib_wbbench.mbt      # Benchmarks
 tools/
   gen_gcb_table.py     # Table generation script
   gen_uax29_tests.py   # Test code generation from official test data

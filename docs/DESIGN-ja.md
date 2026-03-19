@@ -48,7 +48,7 @@ GraphemeView {
 1. **Phase 0（完了）**: コードポイント単位の暫定実装。サロゲートペアは正しく処理。
 2. **Phase 1（完了）**: UAX #29 全GBルール実装 -- テーブル生成、ステートマシン、公式テスト全766件パス。
 3. **Phase 2（一部完了）**: パフォーマンス最適化 -- ASCII fast path 実装済み。二段ルックアップテーブル・Compressed Bitset は未着手（現状のバイナリサーチで十分高速なため保留）。
-4. **Phase 3（完了）**: 追加 API -- スライス（`op_as_view`）、逆イテレーション（`rev_iter`）、`iter2`、`grapheme_indices`、`Show`/`Eq`/`Hash` trait、`get`/`is_empty`/`to_string`。
+4. **Phase 3（完了）**: 追加 API -- スライス（`op_as_view`）、逆イテレーション（`rev_iter`）、`iter2`、`grapheme_indices`、`Show`/`Eq`/`Hash` trait、`get`/`is_empty`/`to_string`、遅延評価イテレータ（`grapheme_iter`）。
 
 ---
 
@@ -70,6 +70,7 @@ src/
   gcb_wbtest.mbt       # ホワイトボックステスト: gcb_category() のテスト
   segmenter_wbtest.mbt # ホワイトボックステスト: check_boundary() の個別GBルールテスト
   uax29_test.mbt       # ブラックボックステスト: 公式テストデータ全766件
+  lib_wbbench.mbt      # ベンチマーク
 tools/
   gen_gcb_table.py     # テーブル生成スクリプト
   gen_uax29_tests.py   # 公式テストデータからテストコード生成
