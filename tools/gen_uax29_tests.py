@@ -133,6 +133,7 @@ def generate_test(test_num: int, clusters: list, comment: str, raw_line: str) ->
         test_name += f": {escape_for_test_name(short_comment)}"
 
     lines = []
+    lines.append("///|")
     lines.append(f'test "{test_name}" {{')
 
     # 元の行をコメントとして追加（短縮）
@@ -192,6 +193,7 @@ def main():
 // Test count: {len(tests)}
 
 """
+    # Note: Each test already starts with ///| block separator
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:

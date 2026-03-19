@@ -305,6 +305,7 @@ def main():
     lines.append("")
 
     # メイン GCB テーブル
+    lines.append("///|")
     lines.append(
         "let gcb_table : FixedArray[(Int, Int, GCBCategory)] = ["
     )
@@ -315,6 +316,8 @@ def main():
 
     # InCB Linker テーブル
     lines.append("// InCB=Linker codepoints (sorted)")
+    lines.append("")
+    lines.append("///|")
     lines.append("let incb_linker_table : FixedArray[Int] = [")
     for cp in linker_cps:
         lines.append(f"  {hex(cp)},")
@@ -323,6 +326,8 @@ def main():
 
     # InCB Extend テーブル
     lines.append("// InCB=Extend codepoint ranges (sorted)")
+    lines.append("")
+    lines.append("///|")
     lines.append("let incb_extend_table : FixedArray[(Int, Int)] = [")
     for start, end in incb_extend_ranges:
         lines.append(f"  ({hex(start)}, {hex(end)}),")
