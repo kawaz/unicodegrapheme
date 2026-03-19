@@ -24,7 +24,7 @@ moon add kawaz/unicodegrapheme
 ```moonbit
 // Basic: split and access by grapheme cluster
 let view = @unicodegrapheme.graphemes("Hello🇯🇵World")
-println(view.length())  // 7 (number of grapheme clusters)
+println(view.length())  // 11 (number of grapheme clusters)
 println(view[5].to_string())  // "🇯🇵"
 println(view[1:3].to_string())  // "el" (slice)
 

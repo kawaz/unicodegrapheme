@@ -192,7 +192,7 @@ pub fn GraphemeView::op_as_view(
 }
 
 ///|
-/// Iterates over grapheme clusters with their indices.
+/// Iterates over grapheme clusters with their 0-based cluster indices (not byte offsets).
 pub fn GraphemeView::iter2(self : GraphemeView) -> Iter2[Int, StringView] {
   let len = self.length()
   let mut i = 0
@@ -211,6 +211,7 @@ pub fn GraphemeView::iter2(self : GraphemeView) -> Iter2[Int, StringView] {
 ///|
 /// Two GraphemeViews are equal if they have the same number of clusters
 /// and each corresponding cluster has the same string content.
+/// Compares by code point sequence, not Unicode canonical equivalence (NFC/NFD).
 pub impl Eq for GraphemeView with equal(self, other) {
   let len = self.length()
   if len != other.length() {
@@ -240,8 +241,9 @@ pub impl Hash for GraphemeView with hash_combine(self, hasher) {
 }
 
 ///|
-/// Iterates over grapheme clusters with their UTF-16 byte offsets.
+/// Iterates over grapheme clusters with their UTF-16 code unit offsets.
 /// Yields (start_offset, end_offset, cluster) for each grapheme cluster.
+/// Offsets are compatible with `String` indexing methods.
 /// Note: For sliced GraphemeViews, offsets refer to positions in the original source string.
 pub fn GraphemeView::grapheme_indices(
   self : GraphemeView,
