@@ -59,7 +59,7 @@ pub fn grapheme_iter(s : String) -> Iter[StringView] {
       let unit = s.at(offset).to_int()
       let (cp, cp_len) = if unit >= 0xD800 && unit <= 0xDBFF && offset + 1 < len {
         let lo = s.at(offset + 1).to_int()
-        let decoded = ((unit - 0xD800) * 0x400) + (lo - 0xDC00) + 0x10000
+        let decoded = (unit - 0xD800) * 0x400 + (lo - 0xDC00) + 0x10000
         (decoded, 2)
       } else {
         (unit, 1)

@@ -1274,9 +1274,7 @@ test "graphemes: four regional indicators" {
 ///|
 test "graphemes: six regional indicators" {
   // RI x6 = 3 flags = 3 clusters
-  let g = graphemes(
-    "\u{1F1E6}\u{1F1E7}\u{1F1E8}\u{1F1E9}\u{1F1EA}\u{1F1EB}",
-  )
+  let g = graphemes("\u{1F1E6}\u{1F1E7}\u{1F1E8}\u{1F1E9}\u{1F1EA}\u{1F1EB}")
   inspect(g.length(), content="3")
 }
 
@@ -1348,19 +1346,13 @@ test "op_as_view: triple nested slice" {
 ///|
 test "get: first element of sliced view" {
   let g = graphemes("ABCDE")[2:4]
-  inspect(
-    g.get(0).map(fn(v) { v.to_string() }),
-    content="Some(\"C\")",
-  )
+  inspect(g.get(0).map(fn(v) { v.to_string() }), content="Some(\"C\")")
 }
 
 ///|
 test "get: last element of sliced view" {
   let g = graphemes("ABCDE")[2:4]
-  inspect(
-    g.get(1).map(fn(v) { v.to_string() }),
-    content="Some(\"D\")",
-  )
+  inspect(g.get(1).map(fn(v) { v.to_string() }), content="Some(\"D\")")
 }
 
 ///|
@@ -1630,7 +1622,9 @@ test "graphemes: length equals rev_iter count on sliced" {
 // Subdivision flag: Wales 🏴󠁧󠁢󠁷󠁬󠁳󠁿 = EP + tag characters (Extend) = 1 cluster
 test "graphemes: subdivision flag Wales" {
   // U+1F3F4 U+E0067 U+E0062 U+E0077 U+E006C U+E0073 U+E007F
-  let g = graphemes("\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}")
+  let g = graphemes(
+    "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
+  )
   inspect(g.length(), content="1")
 }
 
@@ -1733,9 +1727,10 @@ test "grapheme_iter: empty string" {
 ///|
 test "grapheme_iter: family emoji is 1 cluster" {
   let mut count = 0
-  for _cluster in grapheme_iter(
-    "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
-  ) {
+  for
+    _cluster in grapheme_iter(
+      "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}",
+    ) {
     count += 1
   }
   inspect(count, content="1")

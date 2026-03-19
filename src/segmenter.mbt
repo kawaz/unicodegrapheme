@@ -135,9 +135,19 @@ fn SegmenterState::next(self : SegmenterState, cp : Int) -> Bool {
   let is_boundary = match self.prev_gcb {
     None => true
     Some(prev) =>
-      check_boundary(prev, cur_gcb, self.ri_count, self.emoji_state, self.incb_state)
+      check_boundary(
+        prev,
+        cur_gcb,
+        self.ri_count,
+        self.emoji_state,
+        self.incb_state,
+      )
   }
-  self.ri_count = if cur_gcb == Regional_Indicator { self.ri_count + 1 } else { 0 }
+  self.ri_count = if cur_gcb == Regional_Indicator {
+    self.ri_count + 1
+  } else {
+    0
+  }
   self.emoji_state = next_emoji_state(self.emoji_state, cur_gcb)
   self.incb_state = next_incb_state(self.incb_state, cur_gcb, cp)
   self.prev_gcb = Some(cur_gcb)

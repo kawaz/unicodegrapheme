@@ -117,7 +117,9 @@ test "bench: grapheme_iter ASCII long (first 10 only)" (b : @bench.T) {
     let mut count = 0
     for _cluster in grapheme_iter(s) {
       count += 1
-      if count >= 10 { break }
+      if count >= 10 {
+        break
+      }
     }
     b.keep(count)
   })
