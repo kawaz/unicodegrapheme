@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-03-20
+
 ### Changed
 - **Package renamed**: `kawaz/unicodegrapheme` → `kawaz/grapheme`
-- Repository renamed: `kawaz/grapheme.mbt` → `kawaz/grapheme.mbt`
+- Repository renamed: `kawaz/unicodegrapheme.mbt` → `kawaz/grapheme.mbt`
 - GitHub Actions publish workflow (tag push triggers `moon publish`)
 - `just release` recipe for automated release flow
+- README: badges, catchphrase, 3-layer table, NFC/NFD note, enriched Usage examples
+- Docstrings: `grapheme_indices()` offset terminology, `Eq` normalization note, `iter2()` index clarification
+- `release-check` recipe order fixed (fmt-check → check → info → test)
 
 ### Added
 - GitHub Actions CI workflow (`moon check`, `moon test` on wasm-gc/js/native, `moon fmt --check`)
@@ -20,11 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `grapheme_iter()`/`graphemes()` content equivalence test (11 input patterns)
 - GB5 Any÷LF/CR, emoji state reset, InCB state extend unit tests
 - Gen scripts now emit `///|` block separators
-
-### Changed
-- README: badges, catchphrase, 3-layer table, NFC/NFD note, enriched Usage examples
-- Docstrings: `grapheme_indices()` offset terminology, `Eq` normalization note, `iter2()` index clarification
-- `release-check` recipe order fixed (fmt-check → check → info → test)
 
 ## [0.8.0] - 2026-03-20
 
@@ -69,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `rev_iter`, `iter2`
 - 1,093 official UAX #29 test cases passing
 
-[Unreleased]: https://github.com/kawaz/grapheme.mbt/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/kawaz/grapheme.mbt/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/kawaz/grapheme.mbt/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.5.0...v0.7.0
