@@ -138,3 +138,53 @@ test "bench: graphemes ASCII long (first 10 via slice)" (b : @bench.T) {
     b.keep(sliced)
   })
 }
+
+///|
+test "bench: graphemes CJK" (b : @bench.T) {
+  // Japanese text with kanji, hiragana, katakana
+  let s = "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。"
+  b.bench(fn() {
+    let g = graphemes(s)
+    b.keep(g)
+  })
+}
+
+///|
+test "bench: grapheme_iter ASCII long (full scan)" (b : @bench.T) {
+  let buf = StringBuilder::new()
+  for i = 0; i < 100; i = i + 1 {
+    buf.write_string("0123456789")
+  }
+  let s = buf.to_string()
+  b.bench(fn() {
+    let mut count = 0
+    for _cluster in grapheme_iter(s) {
+      count += 1
+    }
+    b.keep(count)
+  })
+}
+
+///|
+test "bench: grapheme_iter mixed real world (full scan)" (b : @bench.T) {
+  let s = "Hello🌍, こんにちは世界! 🇯🇵🇺🇸 가나다라 👨\u{200D}👩\u{200D}👧\u{200D}👦"
+  b.bench(fn() {
+    let mut count = 0
+    for _cluster in grapheme_iter(s) {
+      count += 1
+    }
+    b.keep(count)
+  })
+}
+
+///|
+test "bench: grapheme_iter CJK (full scan)" (b : @bench.T) {
+  let s = "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。"
+  b.bench(fn() {
+    let mut count = 0
+    for _cluster in grapheme_iter(s) {
+      count += 1
+    }
+    b.keep(count)
+  })
+}

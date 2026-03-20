@@ -31,13 +31,24 @@ All GB rules (GB3-GB13, GB999) from Unicode 17.0.0 are implemented as a state ma
 moon add kawaz/grapheme
 ```
 
-Add the dependency to your package's `moon.pkg.json`:
+Add the dependency to your package's `moon.pkg`:
+
+```
+import {
+  "kawaz/grapheme",
+}
+```
+
+<details>
+<summary>JSON format (moon.pkg.json)</summary>
 
 ```json
 {
   "import": ["kawaz/grapheme"]
 }
 ```
+
+</details>
 
 ## Usage
 

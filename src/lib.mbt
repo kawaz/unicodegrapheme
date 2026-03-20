@@ -15,7 +15,7 @@ pub struct GraphemeView {
 /// Note: This function scans the entire string upfront (O(n) preprocessing).
 /// For lazy evaluation, use grapheme_iter() instead.
 pub fn graphemes(s : String) -> GraphemeView {
-  let boundaries : Array[Int] = []
+  let boundaries : Array[Int] = Array::new(capacity=s.length() / 4 + 2)
   let state = SegmenterState::new()
   let mut offset = 0
   for ch in s {
@@ -39,6 +39,24 @@ pub fn graphemes(s : String) -> GraphemeView {
 }
 
 ///|
+/// Decodes one Unicode code point from a UTF-16 string at the given offset.
+/// Returns (code_point, code_unit_length) where code_unit_length is 2 for
+/// surrogate pairs and 1 otherwise.
+fn decode_utf16(s : String, offset : Int, len : Int) -> (Int, Int) {
+  let unit = s.at(offset).to_int()
+  if unit >= 0xD800 && unit <= 0xDBFF && offset + 1 < len {
+    let lo = s.at(offset + 1).to_int()
+    if lo >= 0xDC00 && lo <= 0xDFFF {
+      ((unit - 0xD800) * 0x400 + (lo - 0xDC00) + 0x10000, 2)
+    } else {
+      (unit, 1) // lone high surrogate
+    }
+  } else {
+    (unit, 1)
+  }
+}
+
+///|
 /// Returns a lazy iterator that yields grapheme clusters one at a time
 /// without preprocessing the entire string.
 /// Use this when you only need the first few clusters of a long string.
@@ -55,18 +73,7 @@ pub fn grapheme_iter(s : String) -> Iter[StringView] {
       return None
     }
     while offset < len {
-      // Decode one code point from UTF-16
-      let unit = s.at(offset).to_int()
-      let (cp, cp_len) = if unit >= 0xD800 && unit <= 0xDBFF && offset + 1 < len {
-        let lo = s.at(offset + 1).to_int()
-        if lo >= 0xDC00 && lo <= 0xDFFF {
-          ((unit - 0xD800) * 0x400 + (lo - 0xDC00) + 0x10000, 2)
-        } else {
-          (unit, 1) // lone high surrogate
-        }
-      } else {
-        (unit, 1)
-      }
+      let (cp, cp_len) = decode_utf16(s, offset, len)
       let is_boundary = state.next(cp)
       if is_boundary && started {
         let view = s.view(start_offset=cluster_start, end_offset=offset)
