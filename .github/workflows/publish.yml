@@ -21,8 +21,6 @@ jobs:
         run: moon check --deny-warn
       - name: Moon test
         run: moon test --target all
-      - name: Publish (dry-run)
-        run: moon publish --dry-run
       - name: Publish
         run: |
           echo "$MOONCAKES_TOKEN" > ~/.moon/credentials.json
