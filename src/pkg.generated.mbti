@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "kawaz/unicodegrapheme"
+package "kawaz/grapheme"
 
 // Values
 pub fn grapheme_iter(String) -> Iter[StringView]

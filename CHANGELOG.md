@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **Package renamed**: `kawaz/unicodegrapheme` → `kawaz/grapheme`
+- Repository renamed: `kawaz/grapheme.mbt` → `kawaz/grapheme.mbt`
+- GitHub Actions publish workflow (tag push triggers `moon publish`)
+- `just release` recipe for automated release flow
+
 ### Added
 - GitHub Actions CI workflow (`moon check`, `moon test` on wasm-gc/js/native, `moon fmt --check`)
 - `justfile` with build/test/coverage/bench/gen recipes
@@ -63,9 +69,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `rev_iter`, `iter2`
 - 1,093 official UAX #29 test cases passing
 
-[Unreleased]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.8.0...HEAD
-[0.8.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.7.1...v0.8.0
-[0.7.1]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.7.0...v0.7.1
-[0.7.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.5.0...v0.7.0
-[0.5.0]: https://github.com/kawaz/unicodegrapheme.mbt/compare/v0.1.0...v0.5.0
-[0.1.0]: https://github.com/kawaz/unicodegrapheme.mbt/releases/tag/v0.1.0
+[Unreleased]: https://github.com/kawaz/grapheme.mbt/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.7.1...v0.8.0
+[0.7.1]: https://github.com/kawaz/grapheme.mbt/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.5.0...v0.7.0
+[0.5.0]: https://github.com/kawaz/grapheme.mbt/compare/v0.1.0...v0.5.0
+[0.1.0]: https://github.com/kawaz/grapheme.mbt/releases/tag/v0.1.0

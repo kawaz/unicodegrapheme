@@ -1,6 +1,6 @@
 English | [日本語](DESIGN-ja.md)
 
-# unicodegrapheme Design
+# grapheme Design
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 English | [日本語](README-ja.md)
 
-# unicodegrapheme
+# grapheme
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Unicode 17.0.0](https://img.shields.io/badge/Unicode-17.0.0-blue.svg)](https://unicode.org/versions/Unicode17.0.0/)
@@ -24,18 +24,18 @@ All GB rules (GB3-GB13, GB999) from Unicode 17.0.0 are implemented as a state ma
 ## Install
 
 ```
-moon add kawaz/unicodegrapheme
+moon add kawaz/grapheme
 ```
 
 ## Usage
 
 ```moonbit
 // Correct grapheme cluster counting
-let family = @unicodegrapheme.graphemes("👨‍👩‍👧‍👦")
+let family = @grapheme.graphemes("👨‍👩‍👧‍👦")
 println(family.length())  // 1
 
 // Split, access, and slice
-let view = @unicodegrapheme.graphemes("Hello🇯🇵World")
+let view = @grapheme.graphemes("Hello🇯🇵World")
 println(view.length())  // 11 (H,e,l,l,o,🇯🇵,W,o,r,l,d)
 println(view[5].to_string())  // "🇯🇵"
 println(view[1:3].to_string())  // "el" (slice)
@@ -46,14 +46,14 @@ for cluster in view {
 }
 
 // Lazy evaluation: fast when you only need the first few clusters
-let first = @unicodegrapheme.grapheme_iter("very long text...").head()
+let first = @grapheme.grapheme_iter("very long text...").head()
 ```
 
 `graphemes()` pre-scans the entire string to provide random access and slicing. Use `grapheme_iter()` when you only need the first N clusters (no full scan required).
 
 ## API
 
-[API Documentation](https://mooncakes.io/docs/kawaz/unicodegrapheme)
+[API Documentation](https://mooncakes.io/docs/kawaz/grapheme)
 
 > **Note:** `==` comparison is based on code point sequences. Unicode normalization (NFC/NFD) is not considered, so precomposed and decomposed forms of the same character are treated as different GraphemeViews.
 
