@@ -16,7 +16,7 @@ This library provides APIs for safely manipulating strings at the grapheme clust
 
 - Zero dependencies
 - Backends: wasm-gc, wasm, js, native
-- Bundle size: wasm-gc ~25 KB / wasm ~31 KB / js ~59 KB / native ~56 KB
+- Bundle size: wasm-gc ~23 KB / wasm ~27 KB / js ~59 KB / native ~56 KB
 - Random access and slicing (unique among grapheme segmentation libraries)
 
 | Layer | Problem | Solution |
@@ -94,7 +94,26 @@ let first = @grapheme.grapheme_iter("very long text...").head()
 - Safe access (`get`), `Show`/`Eq`/`Hash` traits, `is_empty`, `to_string`
 - Slice operations (`view[1:3]`)
 - Extended iteration (`rev_iter`, `iter2`, `grapheme_indices`)
-- Lazy iterator `grapheme_iter()` — up to 64x faster for early-break use cases
+- Lazy iterator `grapheme_iter()` — up to 88x faster for early-break use cases
+
+## Performance
+
+Benchmark results (wasm-gc target, MoonBit 0.1.20260327):
+
+| Input | `graphemes()` | `grapheme_iter()` |
+|-------|--------------|-------------------|
+| ASCII 13 chars | 0.96 us | — |
+| ASCII 1,000 chars | 66 us | 77 us (full scan) |
+| Emoji ZWJ × 10 | 5.4 us | — |
+| Flags × 10 | 1.5 us | — |
+| CJK 67 chars | 4.9 us | 4.9 us (full scan) |
+| Mixed real world | 2.6 us | 2.8 us (full scan) |
+| First 10 only (1,000 chars) | 67 us (full scan) | **0.75 us** |
+
+`grapheme_iter()` starts without pre-scanning, making it up to **88x faster** when only the first N clusters are needed.
+
+- `gcb_category()`: 10 ns (O(1) two-stage table lookup)
+- Slice operation: 10 ns (boundary array index adjustment only)
 
 ## Unicode Version
 

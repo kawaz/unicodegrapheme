@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Bundle size: wasm-gc ~23 KB / wasm ~27 KB (improved by MoonBit compiler update)
+- README: add Performance section with benchmark results
+
+### Fixed
+- Replace deprecated `not()` with `!` operator (MoonBit v0.8.3 compat)
+
+### Added
+- 22 edge case tests: RI parity (3-8 code points), InCB deep nesting, skin tone modifiers, long ZWJ chains, sliced view grapheme_indices offset precision
+
 ## [0.10.2] - 2026-03-20
 
 ### Changed
