@@ -381,7 +381,7 @@ test "GraphemeView: Show emoji" {
 test "GraphemeView: get valid index" {
   let g = graphemes("ABC")
   let v = g.get(0)
-  inspect(not(v is None), content="true")
+  inspect(!(v is None), content="true")
 }
 
 ///|
