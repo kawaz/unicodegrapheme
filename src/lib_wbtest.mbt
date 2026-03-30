@@ -1766,3 +1766,216 @@ test "grapheme_iter: matches graphemes() count and content" {
     }
   }
 }
+
+// --- QA edge case tests ---
+
+// AO. Regional Indicator (RI) extended parity tests (GB12/13)
+
+///|
+// 3 RI code points: 🇯🇵 + lone RI → 2 clusters (pair + lone)
+test "graphemes: 3 RI code points (pair + lone)" {
+  // JP(RI+RI) + lone A(RI) → 2 clusters
+  let g = graphemes("\u{1F1EF}\u{1F1F5}\u{1F1E6}")
+  inspect(g.length(), content="2")
+}
+
+///|
+// 4 RI code points: 🇯🇵🇺🇸 → 2 clusters (pair + pair)
+test "graphemes: 4 RI code points (2 flags)" {
+  let g = graphemes("\u{1F1EF}\u{1F1F5}\u{1F1FA}\u{1F1F8}")
+  inspect(g.length(), content="2")
+}
+
+///|
+// 5 RI code points: 🇯🇵🇺🇸 + lone RI → 3 clusters
+test "graphemes: 5 RI code points (2 pairs + lone)" {
+  let g = graphemes("\u{1F1EF}\u{1F1F5}\u{1F1FA}\u{1F1F8}\u{1F1E6}")
+  inspect(g.length(), content="3")
+}
+
+///|
+// 6 RI code points: 🇯🇵🇺🇸🇫🇷 → 3 clusters
+test "graphemes: 6 RI code points (3 flags)" {
+  let g = graphemes("\u{1F1EF}\u{1F1F5}\u{1F1FA}\u{1F1F8}\u{1F1EB}\u{1F1F7}")
+  inspect(g.length(), content="3")
+}
+
+///|
+// 7 RI code points: 3 pairs + 1 lone → 4 clusters
+test "graphemes: 7 RI code points (3 pairs + lone)" {
+  let g = graphemes(
+    "\u{1F1EF}\u{1F1F5}\u{1F1FA}\u{1F1F8}\u{1F1EB}\u{1F1F7}\u{1F1E6}",
+  )
+  inspect(g.length(), content="4")
+}
+
+///|
+// 8 RI code points: 4 pairs → 4 clusters
+test "graphemes: 8 RI code points (4 flags)" {
+  let g = graphemes(
+    "\u{1F1EF}\u{1F1F5}\u{1F1FA}\u{1F1F8}\u{1F1EB}\u{1F1F7}\u{1F1E9}\u{1F1EA}",
+  )
+  inspect(g.length(), content="4")
+}
+
+// AP. Skin tone modifier tests (Extend after Extended_Pictographic)
+
+///|
+// EP + skin tone modifier → 1 cluster (skin tone is Extend)
+test "graphemes: emoji with skin tone" {
+  // Waving hand U+1F44B + skin tone medium U+1F3FD
+  let g = graphemes("\u{1F44B}\u{1F3FD}")
+  inspect(g.length(), content="1")
+}
+
+///|
+// Two emoji with different skin tones → 2 clusters
+test "graphemes: two emoji with different skin tones" {
+  // Waving hand + light + thumbs up + dark
+  let g = graphemes("\u{1F44B}\u{1F3FB}\u{1F44D}\u{1F3FF}")
+  inspect(g.length(), content="2")
+}
+
+///|
+// EP + multiple Extend (skin tone + combining) → 1 cluster
+test "graphemes: emoji with skin tone and combining mark" {
+  // Person U+1F9D1 + skin tone U+1F3FD + combining enclosing keycap U+20E3 (Extend)
+  let g = graphemes("\u{1F9D1}\u{1F3FD}\u{20E3}")
+  inspect(g.length(), content="1")
+}
+
+// AQ. InCB state deep nesting tests (GB9c)
+
+///|
+// Consonant + Linker + Consonant + Linker + Consonant → 1 cluster (deep chain)
+test "graphemes: InCB deep chain (C+L+C+L+C)" {
+  // ka + virama + ka + virama + ka
+  let g = graphemes("\u{0915}\u{094D}\u{0915}\u{094D}\u{0915}")
+  inspect(g.length(), content="1")
+}
+
+///|
+// Consonant + Extend + Linker + Extend + Consonant → 1 cluster
+test "graphemes: InCB with interleaved Extend (C+E+L+E+C)" {
+  // ka + nukta(Extend) + virama(Linker) + nukta(Extend) + ka
+  let g = graphemes("\u{0915}\u{093C}\u{094D}\u{093C}\u{0915}")
+  inspect(g.length(), content="1")
+}
+
+///|
+// Consonant + Linker + Consonant + Linker + Consonant + Linker + Consonant → 1 cluster
+test "graphemes: InCB quadruple consonant chain" {
+  // ka + virama + ka + virama + ka + virama + ka
+  let g = graphemes("\u{0915}\u{094D}\u{0915}\u{094D}\u{0915}\u{094D}\u{0915}")
+  inspect(g.length(), content="1")
+}
+
+// AR. InCB + emoji state simultaneous activation
+
+///|
+// Devanagari conjunct followed by emoji ZWJ sequence
+test "graphemes: InCB then emoji ZWJ" {
+  // ka+virama+ka (1 cluster) + family emoji (1 cluster)
+  let g = graphemes(
+    "\u{0915}\u{094D}\u{0915}\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}",
+  )
+  inspect(g.length(), content="2")
+}
+
+///|
+// Emoji ZWJ sequence followed by Devanagari conjunct
+test "graphemes: emoji ZWJ then InCB" {
+  // thumbs up (1 cluster) + ka+virama+ka (1 cluster)
+  let g = graphemes("\u{1F44D}\u{0915}\u{094D}\u{0915}")
+  inspect(g.length(), content="2")
+}
+
+///|
+// Mixed: RI pair + InCB conjunct + emoji ZWJ
+test "graphemes: RI + InCB + emoji ZWJ mixed" {
+  // JP flag (1) + ka+virama+ka (1) + person+ZWJ+person (1)
+  let g = graphemes(
+    "\u{1F1EF}\u{1F1F5}\u{0915}\u{094D}\u{0915}\u{1F468}\u{200D}\u{1F469}",
+  )
+  inspect(g.length(), content="3")
+}
+
+// AS. Long ZWJ emoji chain
+
+///|
+// Very long ZWJ sequence: EP ZWJ EP ZWJ EP ZWJ EP ZWJ EP (5 EP) → 1 cluster
+test "graphemes: long ZWJ chain (5 emoji)" {
+  // person + ZWJ + person + ZWJ + person + ZWJ + person + ZWJ + person
+  let g = graphemes(
+    "\u{1F9D1}\u{200D}\u{1F9D1}\u{200D}\u{1F9D1}\u{200D}\u{1F9D1}\u{200D}\u{1F9D1}",
+  )
+  inspect(g.length(), content="1")
+}
+
+///|
+// ZWJ between non-EP characters → ZWJ joins to preceding (GB9), B breaks (GB999)
+test "graphemes: ZWJ between non-EP is not GB11" {
+  // A + ZWJ → 1 cluster (GB9: × ZWJ), then B → separate cluster (GB999)
+  let g = graphemes("A\u{200D}B")
+  inspect(g.length(), content="2")
+  inspect(g[0].to_string(), content="A\u{200D}")
+  inspect(g[1].to_string(), content="B")
+}
+
+// AT. Sliced view grapheme_indices offset precision
+
+///|
+test "grapheme_indices: sliced view offsets refer to original source" {
+  // "ABCDE" → slice [2:4] → "CD"
+  let g = graphemes("ABCDE")
+  let sliced = g[2:4]
+  let offsets : Array[(Int, Int)] = []
+  for entry in sliced.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  // C starts at offset 2, D starts at offset 3 in original string
+  inspect(offsets, content="[(2, 3), (3, 4)]")
+}
+
+///|
+test "grapheme_indices: double-sliced view offsets" {
+  // "ABCDEFGH" → slice [1:7] → "BCDEFG" → slice [2:5] → "DEF"
+  let g = graphemes("ABCDEFGH")
+  let s1 = g[1:7]
+  let s2 = s1[2:5]
+  let offsets : Array[(Int, Int)] = []
+  for entry in s2.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  // D=3, E=4, F=5 in original string
+  inspect(offsets, content="[(3, 4), (4, 5), (5, 6)]")
+}
+
+///|
+test "grapheme_indices: sliced emoji view offsets" {
+  // "A🇯🇵B" → graphemes: A(0-1), 🇯🇵(1-5), B(5-6)
+  let g = graphemes("A\u{1F1EF}\u{1F1F5}B")
+  let sliced = g[1:2] // just the flag
+  let offsets : Array[(Int, Int)] = []
+  for entry in sliced.grapheme_indices() {
+    offsets.push((entry.0, entry.1))
+  }
+  // Flag occupies UTF-16 offsets 1..5 (2 surrogate pairs)
+  inspect(offsets, content="[(1, 5)]")
+}
+
+// AU. RI parity reset after non-RI character
+
+///|
+test "graphemes: RI parity resets after non-RI" {
+  // RI+RI (1 flag) + A (1) + RI+RI (1 flag) → 3 clusters
+  let g = graphemes("\u{1F1EF}\u{1F1F5}A\u{1F1FA}\u{1F1F8}")
+  inspect(g.length(), content="3")
+}
+
+///|
+test "graphemes: lone RI between flags" {
+  // RI+RI (flag) + RI (lone) + RI+RI (flag) → 3 clusters
+  let g = graphemes("\u{1F1EF}\u{1F1F5}\u{1F1E6}\u{1F1FA}\u{1F1F8}")
+  inspect(g.length(), content="3")
+}
